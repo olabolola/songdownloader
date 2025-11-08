@@ -2,13 +2,13 @@ use axum::{
     Router,
     extract::{Json, Path},
     http::{StatusCode, header},
-    response::{Html, IntoResponse, Response},
+    response::{IntoResponse, Response},
     routing::{get, post},
 };
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, process::Command};
 use tokio::{fs::File, io::AsyncReadExt, task};
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, services::ServeDir};
 
 #[derive(Deserialize)]
 struct DownloadRequest {
@@ -21,17 +21,13 @@ struct DownloadResponse {
     message: String,
 }
 
-async fn serve_html() -> Html<&'static str> {
-    Html(include_str!("../index.html"))
-}
-
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/", get(serve_html))
         .route("/api/songs", get(get_song_names))
         .route("/api/download", post(download_song_from_youtube))
         .route("/songs/{filename}", get(download_song))
+        .fallback_service(ServeDir::new("."))
         .layer(CorsLayer::permissive());
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -83,24 +79,26 @@ async fn get_song_names() -> Result<Json<serde_json::Value>, StatusCode> {
     Ok(Json(serde_json::json!({"songs": song_names})))
 }
 
-
 async fn download_song_from_youtube(
     Json(payload): Json<DownloadRequest>,
 ) -> (StatusCode, Json<DownloadResponse>) {
     let video_url = payload.url;
     println!("Youtube video URL is: {}", video_url);
-    
+
     task::spawn(async move {
         let result = Command::new("yt-dlp_macos")
             .args([
-                "-f", "bestaudio",
+                "-f",
+                "bestaudio",
                 "--extract-audio",
-                "--audio-format", "mp3",
-                "--output", "songs/%(title)s.%(ext)s",
+                "--audio-format",
+                "mp3",
+                "--output",
+                "songs/%(title)s.%(ext)s",
                 &video_url,
             ])
             .status();
-        
+
         match result {
             Ok(status) if status.success() => {
                 println!("Successfully downloaded: {}", video_url);
@@ -109,7 +107,7 @@ async fn download_song_from_youtube(
             Err(e) => println!("Error downloading {}: {}", video_url, e),
         }
     });
-    
+
     (
         StatusCode::ACCEPTED,
         Json(DownloadResponse {
@@ -118,4 +116,3 @@ async fn download_song_from_youtube(
         }),
     )
 }
-
