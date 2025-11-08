@@ -1,32 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Song Downloader</title>
-    <script>
-    async function getSongs() {
-      const url = "http://localhost:8000/api/songs"
-      const response = await fetch(url);
-      if (!response.ok) {
-      throw new Error(`Response status: ${response.status}`);
-    }
+    <head>
+        <title>Song Downloader</title>
+        <script>
+        async function getSongs() {
+            const url = "/api/songs"
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
 
-    const result = await response.json();
-    console.log(result);
-    return result;
-  }
-    window.onload = async () => {
-      const songs = await getSongs();
-      const list = document.getElementById("list");
-      list.innerHTML = songs.map(i => `<li><a href="songs/${i}" download>${i}</a></li>`).join('');
-    };
-    </script>
-  </head>
-  <body>
-    <h1>Download your song brother</h1>
-    <input></input>
-    <button>Submit</button>
-    <h1>All songs</h1>
-    <ul id="list"></ul>
-    <!-- <a href="songs/meow.mp3" download="meow.mp3">Download</a> -->
-  </body>
+            const result = await response.json();
+            console.log(result);
+            return result;
+        }
+        async function downloadSong() {
+            const input = document.getElementById('urlInput');
+            const url = input.value;
+
+            if (!url) {
+                alert("enter a youtube url");
+                return;
+            }
+
+            const response = await fetch("/api/download", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({url:url})
+            });
+            const result = await response.json();
+            alert(result.message);
+
+            if (result.success) {
+                input.value = "";
+            }
+
+        }
+        window.onload = async () => {
+            const result = await getSongs();
+            const songs = result.songs; // Extract the songs array
+            const list = document.getElementById("list");
+            list.innerHTML = songs.map(i => `<li><a href="/songs/${i}" download>${i}</a></li>`).join('');
+        };
+        </script>
+    </head>
+    <body>
+        <h1>Download your song brother</h1>
+        <input id="urlInput", type="text" placeholder="Enter YouTube URL"></input>
+        <button onclick="downloadSong()">Submit</button>
+        <h1>All songs</h1>
+
+        <ul id="list"></ul>
+    </body>
 </html>
