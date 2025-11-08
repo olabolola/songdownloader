@@ -16,6 +16,7 @@ async function getSongs() {
 
 /**
  * download a song async from a youtube URL
+ * @returns {Promise<>}
  */
 async function downloadSong() {
   const input = /** @type {HTMLInputElement} */ (
