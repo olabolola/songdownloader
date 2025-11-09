@@ -3,3 +3,9 @@
 - [ ] Figure out when to delete songs
 - [ ] get yt-dlp in the image itself
 - [ ] Use docker-compose
+- [ ] Some some slim runtime image
+- [ ] Warn if download failed
+- [ ] Make ports an envvar
+- [ ] add some logging
+- [ ] push docker image to registry
+- [ ] add some deploy thing to makefile
