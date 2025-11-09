@@ -29,7 +29,7 @@ async fn main() {
         .route("/songs/{filename}", get(download_song))
         .fallback_service(ServeDir::new("."))
         .layer(CorsLayer::permissive());
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8011").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
@@ -86,7 +86,7 @@ async fn download_song_from_youtube(
     println!("Youtube video URL is: {}", video_url);
 
     task::spawn(async move {
-        let result = Command::new("yt-dlp_macos")
+        let result = Command::new("./yt-dlp")
             .args([
                 "-f",
                 "bestaudio",
