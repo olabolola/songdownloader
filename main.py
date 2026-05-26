@@ -21,7 +21,12 @@ class DownloadRequest(BaseModel):
 
 @app.get("/api/songs")
 async def get_songs():
-    return {"songs": os.listdir(SONGS_DIR)}
+    songs = sorted(
+        os.listdir(SONGS_DIR),
+        key=lambda f: os.path.getmtime(os.path.join(SONGS_DIR, f)),
+        reverse=True,
+    )
+    return {"songs": songs}
 
 
 @app.post("/api/download", status_code=202)

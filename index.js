@@ -1,53 +1,64 @@
-/**
- * Get songs from endpoint
- * @returns {Promise<{songs: string[]}>}
- */
-async function getSongs() {
-  const url = "/api/songs";
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Response status: ${response.status}`);
-  }
+// ABOUTME: Frontend logic for the song downloader.
+// ABOUTME: Handles URL submission, clipboard paste, and song list rendering.
 
-  const result = await response.json();
-  console.log(result);
-  return result;
+/**
+ * @param {string} msg
+ * @param {number} [ttl]
+ */
+function setStatus(msg, ttl = 0) {
+  const el = /** @type {HTMLElement} */ (document.getElementById("status"));
+  el.textContent = msg;
+  if (ttl) setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, ttl);
 }
 
-/**
- * download a song async from a youtube URL
- * @returns {Promise<>}
- */
-async function downloadSong() {
-  const input = /** @type {HTMLInputElement} */ (
-    document.getElementById("urlInput")
-  );
-  const url = input.value;
-
-  if (!url) {
-    alert("enter a youtube url");
-    return;
+/** @param {string} filename */
+function songLabel(filename) {
+  try {
+    return decodeURIComponent(filename).replace(/\.mp3$/i, "");
+  } catch {
+    return filename.replace(/\.mp3$/i, "");
   }
+}
 
+async function loadSongs() {
+  const response = await fetch("/api/songs");
+  if (!response.ok) return;
+  const { songs } = /** @type {{ songs: string[] }} */ (await response.json());
+  const list = /** @type {HTMLElement} */ (document.getElementById("list"));
+  list.innerHTML = songs
+    .map((f) => `<li><a href="/songs/${encodeURIComponent(f)}" download>${songLabel(f)}</a></li>`)
+    .join("");
+}
+
+async function downloadSong() {
+  const input = /** @type {HTMLInputElement} */ (document.getElementById("urlInput"));
+  const url = input.value.trim();
+  if (!url) { setStatus("Enter a YouTube URL."); return; }
+
+  setStatus("Downloading…");
   const response = await fetch("/api/download", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ url: url }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
   });
   const result = await response.json();
-  alert(result.message);
+  setStatus(result.message, 4000);
+  if (result.success) input.value = "";
+}
 
-  if (result.success) {
-    input.value = "";
+async function pasteAndDownload() {
+  if (!navigator.clipboard) {
+    setStatus("Clipboard API unavailable — paste manually and hit Submit.");
+    return;
+  }
+  try {
+    const text = await navigator.clipboard.readText();
+    const input = /** @type {HTMLInputElement} */ (document.getElementById("urlInput"));
+    input.value = text.trim();
+    await downloadSong();
+  } catch (err) {
+    setStatus(`Clipboard blocked (${err instanceof Error ? err.message : err}) — paste manually.`);
   }
 }
-window.onload = async () => {
-  const result = await getSongs();
-  const songs = result.songs; // Extract the songs array
-  const list = document.getElementById("list");
-  list.innerHTML = songs
-    .map((i) => `<li><a href="/songs/${i}" download>${i}</a></li>`)
-    .join("");
-};
+
+window.addEventListener("load", loadSongs);

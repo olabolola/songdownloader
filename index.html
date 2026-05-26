@@ -2,14 +2,91 @@
 <html lang="en">
     <head>
         <title>Song Downloader</title>
-        <script src="index.js"></script>
+        <script src="index.js" defer></script>
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+
+            body {
+                background: #1a1a1a;
+                color: #f0f0f0;
+                font-family: system-ui, sans-serif;
+                max-width: 640px;
+                margin: 48px auto;
+                padding: 0 24px;
+            }
+
+            h1 { font-size: 1.4rem; font-weight: 600; margin-bottom: 20px; }
+            h2 { font-size: 1rem; font-weight: 600; margin: 32px 0 12px; color: #aaa; text-transform: uppercase; letter-spacing: 0.05em; }
+
+            .input-row {
+                display: flex;
+                gap: 8px;
+            }
+
+            input[type="text"] {
+                flex: 1;
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                border-radius: 6px;
+                color: #f0f0f0;
+                font-size: 0.9rem;
+                padding: 10px 14px;
+                outline: none;
+            }
+            input[type="text"]:focus { border-color: #666; }
+            input[type="text"]::placeholder { color: #555; }
+
+            button {
+                background: #2a2a2a;
+                border: 1px solid #3a3a3a;
+                border-radius: 6px;
+                color: #f0f0f0;
+                cursor: pointer;
+                font-size: 0.85rem;
+                padding: 10px 16px;
+                white-space: nowrap;
+            }
+            button:hover { background: #333; border-color: #555; }
+            button.primary { background: #3a6ea8; border-color: #3a6ea8; }
+            button.primary:hover { background: #4a7eb8; border-color: #4a7eb8; }
+
+            #status {
+                font-size: 0.85rem;
+                color: #aaa;
+                margin-top: 10px;
+                min-height: 1.2em;
+            }
+
+            #list {
+                list-style: none;
+            }
+
+            #list li {
+                border-bottom: 1px solid #2a2a2a;
+            }
+
+            #list li a {
+                display: block;
+                color: #f0f0f0;
+                text-decoration: none;
+                padding: 12px 4px;
+                font-size: 0.95rem;
+            }
+            #list li a::before { content: "↓  "; color: #555; }
+            #list li a:hover { color: #7ab8f5; }
+            #list li a:hover::before { color: #7ab8f5; }
+        </style>
     </head>
     <body>
-        <h1>Download your song brother</h1>
-        <input id="urlInput", type="text" placeholder="Enter YouTube URL"></input>
-        <button onclick="downloadSong()">Submit</button>
-        <h1>All songs</h1>
+        <h1>Song Downloader</h1>
+        <div class="input-row">
+            <input id="urlInput" type="text" placeholder="YouTube URL">
+            <button class="primary" onclick="pasteAndDownload()">Paste & Download</button>
+            <button onclick="downloadSong()">Submit</button>
+        </div>
+        <div id="status"></div>
 
+        <h2>Songs</h2>
         <ul id="list"></ul>
     </body>
 </html>
