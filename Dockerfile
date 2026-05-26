@@ -1,9 +1,16 @@
-FROM rust:latest AS builder
+FROM python:3.12-slim
+
 WORKDIR /app
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml uv.lock* ./
+RUN uv sync --frozen --no-dev
+
 COPY . .
-RUN cargo build --release
-RUN mv /app/target/release/songdownloader /app/songdownloader
 RUN chmod +x yt-dlp
-RUN apt-get update
-RUN apt install -y ffmpeg
-CMD ["/app/songdownloader"]
+RUN mkdir -p songs
+
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8011"]

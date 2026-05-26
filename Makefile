@@ -1,4 +1,2 @@
-format:
-	cargo fmt --all
 run:
-	cargo run
+	uv run uvicorn main:app --reload --port 8011
