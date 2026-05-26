@@ -2,9 +2,14 @@ name: song-downloader
 
 services:
   songdownloader:
+    build: .
     image: songdownloader:latest
     container_name: songdownloader
     restart: unless-stopped
     ports:
       - "8011:8011"
-      # TODO: add volumes for songs
+    volumes:
+      - songs:/app/songs
+
+volumes:
+  songs:
